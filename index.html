@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-HK">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>二進制補碼範圍示範</title>
+
+<style>
+body{
+    font-family: Arial, sans-serif;
+    max-width: 900px;
+    margin: 30px auto;
+    padding: 20px;
+    background:#f5f7fa;
+}
+
+.card{
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    color:#0066cc;
+}
+
+.row{
+    margin:20px 0;
+}
+
+label{
+    font-weight:bold;
+}
+
+select,input[type=range]{
+    width:100%;
+    margin-top:8px;
+}
+
+.binary{
+    font-size:36px;
+    font-family: Consolas, monospace;
+    text-align:center;
+    letter-spacing:5px;
+    color:#d63384;
+    margin:20px 0;
+}
+
+.value{
+    font-size:48px;
+    font-weight:bold;
+    text-align:center;
+    color:#198754;
+}
+
+.info{
+    background:#eef6ff;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+}
+
+.range-box{
+    background:#fff3cd;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+}
+
+.explain{
+    background:#f8f9fa;
+    padding:15px;
+    border-radius:10px;
+    margin-top:15px;
+    line-height:1.8;
+}
+
+.highlight{
+    color:red;
+    font-weight:bold;
+}
+</style>
+</head>
+<body>
+
+<div class="card">
+
+<h1>二進制補碼 (Two's Complement) 示範器</h1>
+
+<div class="row">
+<label>選擇位元數：</label>
+<select id="bits">
+    <option>2</option>
+    <option>3</option>
+    <option>4</option>
+    <option>5</option>
+    <option selected>6</option>
+    <option>7</option>
+    <option>8</option>
+    <option>10</option>
+    <option>12</option>
+    <option>16</option>
+</select>
+</div>
+
+<div class="range-box" id="rangeInfo"></div>
+
+<div class="row">
+<label>拖動滑桿查看所有位元組合：</label>
+<input type="range" id="slider">
+</div>
+
+<div class="binary" id="binary"></div>
+
+<div class="value" id="decimal"></div>
+
+<div class="info" id="status"></div>
+
+<div class="explain" id="explain"></div>
+
+</div>
+
+<script>
+
+const bitsSelect = document.getElementById('bits');
+const slider = document.getElementById('slider');
+
+function updateSliderRange(){
+    const bits = parseInt(bitsSelect.value);
+
+    slider.min = 0;
+    slider.max = Math.pow(2,bits)-1;
+
+    slider.value = 0;
+
+    updateDisplay();
+}
+
+function updateDisplay(){
+
+    const bits = parseInt(bitsSelect.value);
+
+    const raw = parseInt(slider.value);
+
+    let binary = raw.toString(2).padStart(bits,'0');
+
+    let value;
+
+    if(binary[0]==='0'){
+        value = raw;
+    }else{
+        value = raw - Math.pow(2,bits);
+    }
+
+    const minValue = -Math.pow(2,bits-1);
+    const maxValue = Math.pow(2,bits-1)-1;
+
+    document.getElementById('binary').textContent = binary;
+
+    document.getElementById('decimal').textContent =
+        value;
+
+    document.getElementById('rangeInfo').innerHTML =
+    `
+    <b>${bits} 位元補碼範圍：</b><br>
+    最小值 = -2<sup>${bits-1}</sup> = <span class="highlight">${minValue}</span><br>
+    最大值 = 2<sup>${bits-1}</sup> - 1 = <span class="highlight">${maxValue}</span>
+    `;
+
+    let sign = binary[0]==='0'
+        ? '正數或零'
+        : '負數';
+
+    document.getElementById('status').innerHTML =
+    `
+    <b>最高位元(MSB)：</b> ${binary[0]}<br>
+    <b>類型：</b> ${sign}<br>
+    <b>十進制值：</b> ${value}
+    `;
+
+    if(binary[0] === '0'){
+
+        document.getElementById('explain').innerHTML=
+        `
+        <b>解讀方法：</b><br>
+        最高位元是 0，所以直接當作普通二進制。<br>
+        ${binary} = ${value}
+        `;
+
+    }else{
+
+        let inverted =
+        binary.split('')
+        .map(b=>b==='0'?'1':'0')
+        .join('');
+
+        let magnitude =
+        parseInt(inverted,2)+1;
+
+        document.getElementById('explain').innerHTML=
+        `
+        <b>解讀方法：</b><br>
+        最高位元是 1，因此是負數。<br><br>
+
+        原數：
+        ${binary}<br>
+
+        反相：
+        ${inverted}<br>
+
+        加 1：
+        ${magnitude}<br><br>
+
+        所以結果是：
+        <span class="highlight">-${magnitude}</span>
+        `;
+    }
+}
+
+bitsSelect.addEventListener('change',updateSliderRange);
+slider.addEventListener('input',updateDisplay);
+
+updateSliderRange();
+
+</script>
+
+</body>
+</html>
